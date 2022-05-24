@@ -1639,43 +1639,30 @@ int rtlsdr_open_file_descriptor(rtlsdr_dev_t** out_dev, int fd)
 {
 	int r;
 	rtlsdr_dev_t* dev = NULL;
-	libusb_device* device = NULL;
 	uint8_t reg;
 
-	dev = malloc(sizeof(rtlsdr_dev_t));
-	if (NULL == dev)
-		return -ENOMEM;
+	dev = calloc(1, sizeof(rtlsdr_dev_t));
+	if (NULL == dev) return -ENOMEM;
 
-	memset(dev, 0, sizeof(rtlsdr_dev_t));
 	memcpy(dev->fir, fir_default, sizeof(fir_default));
 
 	/* adapted for direct opening of device */
-	libusb_set_option(dev->ctx, LIBUSB_OPTION_NO_DEVICE_DISCOVERY, NULL);
+	r = libusb_set_option(dev->ctx, LIBUSB_OPTION_NO_DEVICE_DISCOVERY, NULL);
+	if (r != LIBUSB_SUCCESS) {
+		free(dev);
+		return -1;
+	}
 	r = libusb_init(&dev->ctx);
-
-	if (r < 0) {
+	if (r != LIBUSB_SUCCESS) {
 		free(dev);
 		return -1;
 	}
 
 	dev->dev_lost = 1;
-	libusb_wrap_sys_device(dev->ctx, (intptr_t)fd, &dev->devh);
-	device = libusb_get_device(dev->devh);
-
-	if (!device) {
-		r = -1;
-		goto err;
-	}
-
-	if (!dev->devh) {
-		r = libusb_open(device, &dev->devh);
-		if (r < 0) {
-			fprintf(stderr, "usb_open error %d\n", r);
-			if (r == LIBUSB_ERROR_ACCESS)
-				fprintf(stderr, "Please fix the device permissions, e.g. "
-					"by installing the udev rules file rtl-sdr.rules\n");
-			goto err;
-		}
+	r = libusb_wrap_sys_device(dev->ctx, (intptr_t)fd, &dev->devh);
+	if (r != LIBUSB_SUCCESS) {
+		free(dev);
+		return -1;
 	}
 
 	/* verbatim copy */
