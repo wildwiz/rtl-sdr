@@ -1635,6 +1635,7 @@ err:
 	return r;
 }
 
+#ifndef _WIN32
 int rtlsdr_open_file_descriptor(rtlsdr_dev_t** out_dev, int fd)
 {
 	int r;
@@ -1810,6 +1811,8 @@ err:
 
 	return r;
 }
+#endif
+
 int rtlsdr_close(rtlsdr_dev_t *dev)
 {
 	if (!dev)
