@@ -381,7 +381,7 @@ int main(int argc, char **argv)
 	char *addr = "127.0.0.1";
 	const char *port = DEFAULT_PORT_STR;
 	uint32_t frequency = 100000000, samp_rate = DEFAULT_SAMPLE_RATE_HZ;
-	struct sockaddr_storage local, remote;
+	struct sockaddr local, remote;
 	struct addrinfo *ai;
 	struct addrinfo *aiHead;
 	struct addrinfo  hints;
